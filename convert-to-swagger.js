@@ -277,12 +277,16 @@ function processEndpoint(node, currentPath) {
 // Recursively traverse the API schema
 function traverseSchema(nodes, parentPath = '') {
     for (const node of nodes) {
-        let currentPath = parentPath;
+        let currentPath;
 
+        // node.path contains the full absolute path, use it directly
         if (node.path) {
-            currentPath = parentPath + '/' + node.path;
+            currentPath = node.path;
         } else if (node.text) {
+            // Fallback: build path incrementally from text
             currentPath = parentPath + '/' + node.text;
+        } else {
+            currentPath = parentPath;
         }
 
         // Clean up path
