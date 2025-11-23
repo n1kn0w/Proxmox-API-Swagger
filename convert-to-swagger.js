@@ -55,10 +55,11 @@ const openApiSpec = {
 };
 
 // Convert PVE type to OpenAPI type
+// Note: Proxmox uses 0/1 for booleans, not true/false
 function convertType(pveType) {
     const typeMap = {
         'string': 'string',
-        'boolean': 'boolean',
+        'boolean': 'integer', // Proxmox uses 0/1, not true/false
         'integer': 'integer',
         'number': 'number',
         'array': 'array',
@@ -66,6 +67,11 @@ function convertType(pveType) {
         'null': 'string'
     };
     return typeMap[pveType] || 'string';
+}
+
+// Check if a property is a Proxmox boolean (uses 0/1)
+function isProxmoxBoolean(prop) {
+    return prop.type === 'boolean';
 }
 
 // Convert parameters to OpenAPI format
@@ -92,6 +98,8 @@ function convertParameters(params, pathParams) {
         }
         if (prop.enum) {
             param.schema.enum = prop.enum;
+        } else if (isProxmoxBoolean(prop)) {
+            param.schema.enum = [0, 1];
         }
         if (prop.minimum !== undefined) {
             param.schema.minimum = prop.minimum;
@@ -132,6 +140,8 @@ function convertRequestBody(params, pathParams) {
         }
         if (prop.enum) {
             bodyProps[name].enum = prop.enum;
+        } else if (isProxmoxBoolean(prop)) {
+            bodyProps[name].enum = [0, 1];
         }
         if (prop.minimum !== undefined) {
             bodyProps[name].minimum = prop.minimum;
